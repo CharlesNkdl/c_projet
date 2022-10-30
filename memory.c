@@ -5,9 +5,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#define MAX 10
-
-int table_build (bool lock_v [MAX][MAX],long (value)[][MAX],int taille, int a, int b, int c, int d);
+//int table_build (bool lock_v [][MAX],long (value)[][MAX],int taille, int a, int b, int c, int d);
 int ask_user_taille(void);
 int get_int(void);
 int count_try = 0;
@@ -21,7 +19,7 @@ int main(void)
     // On calcule le nombre de valeur dans la table
     int nbrv = (taille * (taille - 1)/ 2);
     // On crée un array de taille égal au nombre de valeur unique
-    long (*value)[nbrv] = malloc(sizeof(*value));
+    int value[nbrv];
     // On crée un compteur
     int count = 0;
     // On initialise la seed pour randomiser
@@ -29,7 +27,7 @@ int main(void)
     // On remplit l'array des valeurs uniques randomiser
     while (count != nbrv)
     {  
-        *value[count] = ((rand()%127)+ 32);
+        value[count] = ((rand()%127)+ 32);
         //sleep(0.1);
         count++;
         // On regarde si y a pas de valeur double dans le pur des hasard et on les incrémente de un si nécessaire
@@ -43,11 +41,10 @@ int main(void)
                     {
                         if (value[a] == value[r])
                         {
-                            *value[a] += 1;
+                            value[a] += 1;
                             a = 0;
                             r = 0;
                         }
-                
                     }
                 }
             }
@@ -61,7 +58,7 @@ int main(void)
     }
     */
     // On initialise le double array qu'on va utiliser pour stocker les valeurs
-    long value_r[taille][taille-1];
+    int value_r[taille][taille-1];
     // On initialise un double array de taille équivalente de type bool pour savoir quand une case est révélé ou pas
     bool (lock_v)[taille][taille-1];
     for (int j = 0; j < taille; j++)
@@ -77,13 +74,13 @@ int main(void)
     {
         for (int k = (taille-1); k > 0; k--)
         {
-            value_r[j][k] = *value[count];
+            value_r[j][k] = value[count];
             count++;
             if (count == nbrv)
             {
                 count = 0;
             } 
-            printf("valeur : %li",value_r[j][k]);
+            printf("valeur : %i",value_r[j][k]);
         } 
     }
     printf("\n");
@@ -116,15 +113,82 @@ int main(void)
     }
     // on initialise la while loop pour le jeu, fini va devenir true quand toutes les valeurs de lock_v seront true, soit révélé
     bool fini = false;
-    int a,b,c,d;
+    int a;
+    int b;
+    int c;
+    int d;
     while (fini != true)
     {
         a = get_coordo_l(taille);
         b = get_coordo_c(taille);
         c = get_coordo_l(taille);
         d = get_coordo_c(taille);
-        // on appelle la fonction de la table avec tout les paramètres qu'il faut 
-        table_build(lock_v,value_r,taille,a,b,c,d);
+        // on appelle la fonction de la table avec tout les paramètres qu'il faut
+
+        //table_build(lock_v,value_r,taille,a,b,c,d);
+        int temp1;
+        int temp2;
+        int is;
+        int js;
+    
+        for (int i = 0; i < taille; i++)
+        {
+            // Pour mettre les ptit numéros et les espaces au bon endroit pour que ce soit tout mims
+            if (i == 0)
+            {
+                for (int q = 1; q < taille; q++)
+                {
+                    if (q == 1)
+                    {
+                        printf("  ");
+                    }
+                    printf("   %i",q);
+                }
+                printf("\n");
+            
+            }
+            // on rajoute un parce que les arrays débute de compter à 0 mais pas les humains lol
+            int ib = i + 1;
+            printf("  %i ",ib);
+
+            for (int j = 0; j < taille-1; j++)
+            {
+            // on commence par regarder si la valeur doit être révélé ou pas
+                if (lock_v[i][j] == true)
+                {
+                    printf("[%i]",value_r[i][j]);
+                }
+            // on révéle la première tentative du joueur, et on stocke la valeur pour pouvoir comparé avec la deuxième tentative
+                if (a == i && b == j &&(lock_v[i][j]!=true))
+                {
+                    temp1 = value_r[i][j];
+                    is = i;
+                    js = j;
+                    printf("[%i]",value_r[i][j]);
+                }
+            // idem mais avec la deuxième valeur
+                if (c == i && d == j &&(lock_v[i][j]!=true))
+                {
+                    temp2 = value_r[i][j];
+                    printf("[%i]",value_r[i][j]);
+                }
+            // le reste de la table qui s'imprime
+                if (((a == i && b == j) != true) && ((c == i && d == j) != true) && (lock_v[i][j]!=true))
+                {
+                    printf("[  ]");
+                }
+            // avec les valeurs stockés on regarde si elles sont équivalents , si oui, on change la valeur de lock_v en true
+                if (temp1 == temp2)
+                {
+                    lock_v[i][j] = true;
+                    lock_v[is][js] = true;
+                }
+            }
+            printf("\n");
+        }
+        // on compte le nombre de tentative
+        count_try++;
+        printf("Nombre d'essai :%i\n",count_try);
         int count_bool = 0;
         for (int j = 0; j < taille; j++)
         {
@@ -138,15 +202,17 @@ int main(void)
                         fini = true;
                     }
                 }
-            }
+            }            
         }
     }
-    printf("Bien joué ! Tu as gagné mon pote !\n En seulement %i essai !", count_try);
+    /// @brief 
+    printf("Bien joué ! Tu as gagné mon pote !\n En seulement %i essai !\n", count_try);
     // on libère la mémoire
-    free(*value);
+    //free(*value);
     // finito
     return 0;
 }
+
 int get_int(void)
 {
     // Cimer stack overflow, c'est très long pour avoir une valeur int safe de tout les mecs qui vont vouloir tester mon programme 
@@ -182,6 +248,7 @@ int ask_user_taille(void)
     }
     return taille;
 }
+/*
 int table_build (bool lock_v[MAX][MAX],long (value_r)[][MAX],int taille,int a, int b,int c, int d)
 {
     // Construction de la table
@@ -250,6 +317,8 @@ int table_build (bool lock_v[MAX][MAX],long (value_r)[][MAX],int taille,int a, i
     count_try++;
     printf("Nombre d'essai :%i\n",count_try);
 }
+*/
+
 int get_coordo_l(int taille)
 {
     // fonction pour avoir les coordos de la ligne
@@ -262,11 +331,12 @@ int get_coordo_l(int taille)
     }
     return numb;
 }
+
 int get_coordo_c(int taille)
 {
     // fonction pour avoir les coordos de la colonne
     int numb = -1;
-    while (numb < 0 || numb > taille-1)
+    while (numb < 0 || numb > taille-2)
     {
         printf("Colonne : ");
         numb = get_int();
@@ -274,6 +344,3 @@ int get_coordo_c(int taille)
     }
     return numb;
 }
-
-
-
