@@ -7,7 +7,7 @@
 
 #define MAX 10
 
-int table_build (bool lock_v [][MAX],int value[][MAX],int taille, int a, int b, int c, int d);
+int table_build (bool lock_v [MAX][MAX],long (value)[][MAX],int taille, int a, int b, int c, int d);
 int ask_user_taille(void);
 int get_int(void);
 int count_try = 0;
@@ -21,7 +21,7 @@ int main(void)
     // On calcule le nombre de valeur dans la table
     int nbrv = (taille * (taille - 1)/ 2);
     // On crée un array de taille égal au nombre de valeur unique
-    int value[nbrv];
+    long (*value)[nbrv] = malloc(sizeof(*value));
     // On crée un compteur
     int count = 0;
     // On initialise la seed pour randomiser
@@ -29,7 +29,7 @@ int main(void)
     // On remplit l'array des valeurs uniques randomiser
     while (count != nbrv)
     {  
-        value[count] = ((rand()%127)+ 32);
+        *value[count] = ((rand()%127)+ 32);
         //sleep(0.1);
         count++;
         if (count == nbrv)
@@ -42,7 +42,7 @@ int main(void)
                     {
                         if (value[a] == value[r])
                         {
-                            value[a] += 1;
+                            *value[a] += 1;
                             a = 0;
                             r = 0;
                         }
@@ -52,13 +52,15 @@ int main(void)
             }
         }
     }
+    /*
     for (int p = 0; p < nbrv; p++)
     {
-        printf("%i \n",value[p]);
+        printf("%i \n",*value[p]);
     }
+    */
     // On initialise le double array qu'on va utiliser pour stocker les valeurs
-    int value_r[taille][taille-1];
-    bool lock_v[taille][taille-1];
+    long value_r[taille][taille-1];
+    bool (lock_v)[taille][taille-1];
     for (int j = 0; j < taille; j++)
     {
         for (int k = 0; k < taille-1; k++)
@@ -71,13 +73,13 @@ int main(void)
     {
         for (int k = (taille-1); k > 0; k--)
         {
-            value_r[j][k] = value[count];
+            value_r[j][k] = *value[count];
             count++;
             if (count == nbrv)
             {
                 count = 0;
             } 
-            printf("valeur : %i",value_r[j][k]);
+            printf("valeur : %li",value_r[j][k]);
         } 
     }
     printf("\n");
@@ -134,6 +136,8 @@ int main(void)
         }
     }
     printf("Bien joué ! Tu as gagné mon pote !\n En seulement %i essai !", count_try);
+    free(*value);
+    free(*value_r);
 
     return 0;
 }
@@ -172,7 +176,7 @@ int ask_user_taille(void)
     }
     return taille;
 }
-int table_build (bool lock_v[][MAX],int value[][MAX],int taille,int a, int b,int c, int d)
+int table_build (bool lock_v[MAX][MAX],long (value_r)[][MAX],int taille,int a, int b,int c, int d)
 {
     // Construction de la table
     int temp1[taille][taille];
@@ -204,21 +208,21 @@ int table_build (bool lock_v[][MAX],int value[][MAX],int taille,int a, int b,int
         {
             if (lock_v[i][j] == true)
             {
-                printf("[%i]",value[i][j]);
+                printf("[%li]",value_r[i][j]);
             }
 
             if (a == i && b == j &&(lock_v[i][j]!=true))
             {
-                temp1[0][0] = value[i][j];
+                temp1[0][0] = value_r[i][j];
                 is = i;
                 js = j;
-                printf("[%i]",value[i][j]);
+                printf("[%li]",value_r[i][j]);
             }
 
             if (c == i && d == j &&(lock_v[i][j]!=true))
             {
-                temp2[0][0] = value[i][j];
-                printf("[%i]",value[i][j]);
+                temp2[0][0] = value_r[i][j];
+                printf("[%li]",value_r[i][j]);
             }
             if (((a == i && b == j) != true) && ((c == i && d == j) != true) && (lock_v[i][j]!=true))
             {
